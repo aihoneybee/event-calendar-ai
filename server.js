@@ -1,6 +1,7 @@
 // server.js - Serverless Event Calendar AI backend
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -116,9 +117,9 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Default route
+// Serve the frontend
 app.get('/', (req, res) => {
-    res.json({ message: 'Event Calendar AI Backend is running!' });
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 module.exports = app;
