@@ -1,12 +1,8 @@
-// server.js - Simple Node.js backend for Event Calendar AI
+// server.js - Serverless Event Calendar AI backend
 const express = require('express');
 const cors = require('cors');
-const multer = require('multer');
-const fs = require('fs').promises;
-const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
@@ -16,18 +12,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// Configure multer for file uploads
-const upload = multer({ 
-    dest: 'uploads/',
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
-
 // Environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
     console.error('OPENAI_API_KEY environment variable is required');
-    process.exit(1);
 }
 
 // Extract events from image
@@ -39,7 +28,11 @@ app.post('/api/extract-events', async (req, res) => {
             return res.status(400).json({ error: 'No file data provided' });
         }
 
-        // fileData is already base64, just use it directly
+        if (!OPENAI_API_KEY) {
+            return res.status(500).json({ error: 'OpenAI API key not configured' });
+        }
+
+        // fileData is already base64, use it directly
         const base64Image = fileData;
 
         // Call OpenAI API
@@ -119,12 +112,13 @@ If you find multiple events (like a schedule), extract ALL of them.`
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Start server
-app.listen(port, () => {
-    console.log(`Event Calendar API running on port ${port}`);
-    console.log(`Health check: http://localhost:${port}/health`);
+// Default route
+app.get('/', (req, res) => {
+    res.json({ message: 'Event Calendar AI Backend is running!' });
 });
+
+module.exports = app;
